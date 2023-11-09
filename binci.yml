@@ -1,0 +1,26 @@
+from: node:18
+workDir: /app
+services:
+  - postgres:
+      from: postgres:16
+      stopTimeSecs: 3
+      env:
+        - POSTGRES_USER=test
+        - POSTGRES_PASSWORD=test
+        - POSTGRES_DB=test
+expose:
+  - 5555:5555 # For Prisma Studio
+before: |
+  export POSTGRES_CONN=postgresql://test:test@$POSTGRES_PORT_5432_TCP_ADDR/test
+  echo "Generating models from schemas..." && yarn prisma:generate > /dev/null 2>&1
+  echo "Running migration and setup..." && yarn prisma:migrate > /dev/null 2>&1
+  yarn seed
+tasks:
+  env: env | sort
+  shell: /bin/sh
+  install: yarn install
+  prisma:generate: yarn prisma:generate
+  prisma:migrate: yarn prisma:migrate
+  prisma:studio: yarn prisma:studio
+  test: yarn test
+  test:watch: yarn test:watch
